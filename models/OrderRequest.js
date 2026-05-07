@@ -14,6 +14,12 @@ const orderItemSchema = new mongoose.Schema(
 
 const orderRequestSchema = new mongoose.Schema(
   {
+    customerAccountId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      default: null,
+      index: true,
+    },
     customer: {
       name: { type: String, required: true, trim: true },
       phone: { type: String, required: true, trim: true },
@@ -29,6 +35,7 @@ const orderRequestSchema = new mongoose.Schema(
       enum: ["pending", "confirmed", "preparing", "on_the_way", "delivered", "cancelled"],
       default: "pending",
     },
+    cancelReason: { type: String, default: "", trim: true },
   },
   { timestamps: true }
 );

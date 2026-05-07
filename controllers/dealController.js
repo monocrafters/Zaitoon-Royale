@@ -23,6 +23,14 @@ const isDealLive = (deal) => {
   return true;
 };
 
+const deactivateExpiredDeals = async () => {
+  const now = new Date();
+  await Deal.updateMany(
+    { isActive: true, endsAt: { $ne: null, $lte: now } },
+    { $set: { isActive: false } }
+  );
+};
+
 const allowedSizes = new Set(["small", "medium", "large", "xlarge", ""]);
 
 const normalizeDealItems = ({ items, products }) => {
@@ -107,6 +115,7 @@ const enrichDeal = (dealDoc) => {
 
 const getDeals = async (_req, res) => {
   try {
+    await deactivateExpiredDeals();
     const deals = await Deal.find()
       .populate("items.product", "name price imageUrl description hasSizePricing sizePrices")
       .populate("products", "name price imageUrl description hasSizePricing sizePrices")
@@ -119,6 +128,7 @@ const getDeals = async (_req, res) => {
 
 const getPublicDeals = async (_req, res) => {
   try {
+    await deactivateExpiredDeals();
     const deals = await Deal.find({ isActive: true })
       .populate("items.product", "name price imageUrl description hasSizePricing sizePrices")
       .populate("products", "name price imageUrl description hasSizePricing sizePrices")
@@ -132,6 +142,7 @@ const getPublicDeals = async (_req, res) => {
 
 const getPublicDealById = async (req, res) => {
   try {
+    await deactivateExpiredDeals();
     const id = String(req.params.id || "").trim();
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({ message: "Deal not found." });
